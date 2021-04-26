@@ -1,0 +1,15 @@
+{
+  "extends": "./tsconfig.build.json",
+
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@typed-query-builder/*": [
+        "packages/*",
+      ]
+    },
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "types": ["jest", "node"]
+  }
+}

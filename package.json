@@ -1,0 +1,79 @@
+{
+  "name": "typecron",
+  "version": "1.0.0",
+  "description": "Type friendly cron-like library designed for detailed scheduling.",
+  "author": "Philip Diffenderfer <pdiffenderfer@gmail.com> (http://github.com/ClickerMonkey)",
+  "keywords": [
+    "cron"
+  ],
+  "homepage": "https://github.com/ClickerMonkey/typecron#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ClickerMonkey/typecron.git"
+  },
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/ClickerMonkey/typecron/issues"
+  },
+  "main": "dist/index.js",
+  "typings": "typings/index.d.ts",
+  "sideEffects": false,
+  "files": [
+    "dist",
+    "typings",
+    "src"
+  ],
+  "scripts": {
+    "build": "yarn run clean && yarn run compile",
+    "clean": "rimraf -rf ./dist tsconfig.build.tsbuildinfo typings",
+    "compile": "tsc -p tsconfig.build.json",
+    "prepublishOnly": "yarn run build",
+    "test": "jest",
+    "test:debug": "node --inspect-brk ../../node_modules/jest/bin/jest.js --runInBand",
+    "test:watch": "npm test -- --watch",
+    "test:coverage": "npm test -- --coverage",
+    "test:only-changed": "npm test -- --bail --onlyChanged",
+    "prebuild": "npm run verify",
+    "verify": "npm test",
+    "circular": "madge --circular --extensions ts,tsx ./src",
+    "cz": "git-cz",
+    "release:npm": "npm publish",
+    "release:preflight": "irish-pub",
+    "release:preflight:package": "npm pack",
+    "size": "shx echo \"Gzipped Size:\" && cross-var strip-json-comments --no-whitespace $npm_package_main | gzip-size"
+  },
+  "devDependencies": {
+    "@types/jest": "25.2.1",
+    "@types/node": "11.13.4",
+    "commitizen": "3.0.7",
+    "cross-var": "1.1.0",
+    "cz-conventional-changelog": "2.1.0",
+    "gzip-size-cli": "3.0.0",
+    "irish-pub": "0.2.0",
+    "jest": "26.6.0",
+    "jest-cli": "24.7.1",
+    "lerna": "^3.22.1",
+    "lint-staged": "8.1.5",
+    "prettier": "1.17.0",
+    "shx": "0.3.2",
+    "standard-version": "5.0.2",
+    "strip-json-comments-cli": "1.0.1",
+    "ts-jest": "^26.4.4",
+    "ts-loader": "6.2.1",
+    "tsconfig-paths": "^3.9.0",
+    "tslint": "5.16.0",
+    "tslint-config-prettier": "1.18.0",
+    "tslint-config-standard": "8.0.1",
+    "tslint-loader": "3.5.4",
+    "tslint-no-circular-imports": "0.7.0",
+    "tslint-react": "4.0.0",
+    "typedoc": "0.14.2",
+    "typescript": "4.1.3",
+    "uglify-js": "3.5.4",
+    "uglifyjs-webpack-plugin": "2.1.2",
+    "validate-commit-msg": "2.14.0",
+    "webpack": "5.1.0",
+    "webpack-cli": "4.0.0",
+    "webpack-config-utils": "2.3.1"
+  }
+}
