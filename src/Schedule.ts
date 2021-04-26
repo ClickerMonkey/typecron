@@ -1,50 +1,117 @@
-import { Frequency, FrequencyInput, frequencyParse } from './Frequency';
-import { CalendarOptions } from './Options';
-import { Period, PeriodDefinition, Periods } from './Period';
+import { DEFAULT_OPTIONS, Options } from './Options';
+import { Pattern, PatternInput } from './Pattern';
+import { isArray, isObjectWith } from './util';
 
 
-export type ScheduleInput = Record<Period, FrequencyInput>;
+export type ScheduleInput = PatternInput | PatternInput[] | { on: PatternInput | PatternInput[], not?: PatternInput | PatternInput[] };
+
+
 
 export class Schedule
 {
 
-  public input: ScheduleInput;
-  public frequency: [PeriodDefinition, Frequency][];
-  public options: CalendarOptions;
+    public input: ScheduleInput;
+    public on: Pattern[];
+    public not: Pattern[];
 
-  public constructor(input: ScheduleInput, options: CalendarOptions = { weekStartsOn: 0, firstWeekContainsDate: 4 })
-  {
-    this.input = input;
-    this.options = options;
-
-    this.frequency = Object.entries(input).map(([period, frequency]) => [Periods[period], frequencyParse(frequency)]);
-    this.frequency.sort(([a], [b]) => b.priority - a.priority);
-  }
-
-  public matches(date: Date): boolean
-  {
-    return !this.frequency.some(([ period, frequency ]) => !frequency.matches((period.get(date, this.options))));
-  }
-
-  public next(date: Date, maxTries: number = 100): Date
-  {
-    const next = new Date(date.getTime());
-
-    do
+    public constructor(input: ScheduleInput, options: Options = DEFAULT_OPTIONS)
     {
-      for (const [period, frequency] of this.frequency)
-      {
-        const current = period.get(next, this.options);
+        this.input = input;
 
-        if (!frequency.matches(current))
+        this.on = (isArray(input) 
+            ? input
+            : isObjectWith<{ on: PatternInput | PatternInput[] }>(input, 'on')
+                ? isArray(input.on)
+                    ? input.on
+                    : [input.on]
+                : [input]
+        ).map(i => new Pattern(i));
+
+        this.not = (isObjectWith<{ not: PatternInput | PatternInput[] }>(input, 'not')
+                ? isArray(input.not)
+                    ? input.not
+                    : [input.not]
+                : []
+        ).map(i => new Pattern(i));
+    }
+
+    public matches(date: Date): boolean
+    {
+        return this.isOn(date) && !this.isNot(date);
+    }
+
+    public isOn(date: Date): boolean
+    {
+        return this.on.some(p => p.matches(date));
+    }
+
+    public isNot(date: Date): boolean
+    {
+        return this.not.some(p => p.matches(date));
+    }
+
+    public next(date: Date, maxTries: number = 100): Date | null
+    {
+        let next = new Date(date.getTime());
+
+        if (this.matches(next))
         {
-          period.next(next, frequency.next(current), this.options);
+            const minNext = this.getMinNext(next, maxTries);
+
+            if (minNext === null)
+            {
+                return null;
+            }
+
+            next = minNext;
         }
-      }
 
-    } while (!this.matches(next))
+        let outerTries = maxTries;
 
-    return next;
-  }
+        do
+        {
+            const minNext = this.getMinNext(next, maxTries);
+
+            if (minNext === null)
+            {
+                return null;
+            }
+
+            next = minNext;
+
+        } while (!this.matches(next) && --outerTries >= 0);
+
+        return outerTries === -1 ? null : next;
+    }
+
+    protected getMinNext(date: Date, maxTries: number = 100): Date | null
+    {
+        let min: Date | null = null;
+
+        for (const pattern of this.on)
+        {
+            const next = pattern.next(date, maxTries);
+
+            if (next !== null)
+            {
+                min = min === null || next.getTime() < min.getTime() ? next : min;
+            }
+        }
+
+        if (min === null || this.not.length === 0)
+        {
+            return min;
+        }
+
+        for (const pattern of this.not)
+        {
+            if (min !== null && pattern.matches(min))
+            {
+                min = pattern.after(min, maxTries);
+            }
+        }
+
+        return min;
+    }
 
 }

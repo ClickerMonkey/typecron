@@ -1,3 +1,4 @@
+import { isArray, isNumber, isObject } from './util';
 
 export interface Frequency
 {
@@ -53,15 +54,15 @@ export function frequencyParse(input?: FrequencyInput): Frequency
   {
     return frequencyAlways();
   }
-  else if (typeof input === 'number')
+  else if (isNumber(input))
   {
     return frequencySingle(input);
   }
-  else if (Array.isArray(input))
+  else if (isArray(input))
   {
     return frequencyMultiple(input);
   }
-  else if (typeof input === 'object')
+  else if (isObject(input))
   {
     return frequencyEvery(input.every, input.other);
   }
