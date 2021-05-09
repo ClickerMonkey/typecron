@@ -1,7 +1,7 @@
 
 export * from './Options';
 export * from './Month';
-export * from './Weekday';
+export * from './DayOfWeek';
 export * from './Frequency';
 export * from './Period';
 export * from './Pattern';

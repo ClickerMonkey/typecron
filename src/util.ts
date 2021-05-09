@@ -1,6 +1,6 @@
 import { Constants } from './Constants';
 import { DEFAULT_OPTIONS, Options } from './Options';
-import { Weekday } from './Weekday';
+import { DayOfWeek } from './DayOfWeek';
 
 
 export function getNext(current: number, next: number, period: number): number
@@ -120,7 +120,7 @@ export function getTimezoneOffsetInMilliseconds(a: Date): number
 export function getFullWeekOf(start: Date, dayOfStart: number, options: Options = DEFAULT_OPTIONS): number
 {
   const dayOfWeekFirst = getDayOfWeek(start, options);
-  const hasWeekZero = dayOfWeekFirst !== Weekday.SUNDAY;
+  const hasWeekZero = dayOfWeekFirst !== DayOfWeek.SUNDAY;
   const offset = hasWeekZero
     ? dayOfWeekFirst - 1
     : dayOfWeekFirst - 1 + Constants.DAYS_IN_WEEK;

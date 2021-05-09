@@ -26,11 +26,17 @@
     "noUnusedLocals": true,
     "downlevelIteration": true,
     "composite": true,
+    "outDir": "dist",
+    "rootDir": "src",
+    "declarationDir": "typings"
   },
   "compileOnSave": false,
   "buildOnSave": false,
   "exclude": [
     "node_modules",
     "dist"
+  ],
+  "include": [
+    "src/**/*"
   ]
 }

@@ -19,6 +19,7 @@ export type Period =
   'dayOfMonth' | 
   'dayOfMonthFromEnd' |
   'dayOfWeek' |
+  'dayOfEpoch' |
   'hour' | 
   'minute' | 
   'second' | 
@@ -67,7 +68,7 @@ export const Periods: Record<Period, PeriodDefinition> =
     priority: 3155760000000,
     get: (date) => Math.ceil(date.getFullYear() / Constants.YEARS_IN_CENTURY),
     next: (date, value) => {
-      date.setFullYear(value * Constants.YEARS_IN_CENTURY - Constants.YEAR_OF_CENTURY_MAX, 0, 1);
+      date.setFullYear(value * Constants.YEARS_IN_CENTURY - Constants.YEAR_OF_CENTURY_MAX, Constants.MONTH_MIN, Constants.DAY_MIN);
       date.setHours(0, 0, 0, 0);
     },
   },
@@ -82,10 +83,11 @@ export const Periods: Record<Period, PeriodDefinition> =
     priority: 315360000000,
     get: (date) => Math.floor(date.getFullYear() / 10),
     next: (date, value) => {
-      date.setFullYear(value * Constants.YEARS_IN_DECADE, 0, Constants.DAY_MIN);
+      date.setFullYear(value * Constants.YEARS_IN_DECADE, Constants.MONTH_MIN, Constants.DAY_MIN);
       date.setHours(0, 0, 0, 0);
     },
   },
+
   /**
    * A year can be any valid year in a Date object.
    */
@@ -94,10 +96,11 @@ export const Periods: Record<Period, PeriodDefinition> =
     priority: 31556952000,
     get: (date) => date.getFullYear(),
     next: (date, value) => {
-      date.setFullYear(value, 0, Constants.DAY_MIN);
+      date.setFullYear(value, Constants.MONTH_MIN, Constants.DAY_MIN);
       date.setHours(0, 0, 0, 0);
     },
   },
+
   /**
    * Valid values: 0-3
    */
@@ -105,11 +108,13 @@ export const Periods: Record<Period, PeriodDefinition> =
   {
     priority: 7884000000,
     get: (date) => Math.floor(date.getMonth() / Constants.MONTHS_IN_QUARTER),
-    next: (date, value) => {
-      date.setMonth(getNext(Math.floor(date.getMonth() / Constants.MONTHS_IN_QUARTER), value, Constants.QUARTERS_IN_YEAR) * Constants.MONTHS_IN_QUARTER);
+    next: (date, value, options) => {
+      const current = Periods.quarter.get(date, options);
+      date.setMonth(getNext(current, value, Constants.QUARTERS_IN_YEAR) * Constants.MONTHS_IN_QUARTER, Constants.DAY_MIN);
       date.setHours(0, 0, 0, 0);
     },
   },
+
   /**
    * Valid values: 0-11
    */
@@ -118,10 +123,11 @@ export const Periods: Record<Period, PeriodDefinition> =
     priority: 2629800000,
     get: (date) => date.getMonth(),
     next: (date, value) => {
-      date.setMonth(getNext(date.getMonth(), value, Constants.MONTHS_IN_YEAR));
+      date.setMonth(getNext(date.getMonth(), value, Constants.MONTHS_IN_YEAR), Constants.DAY_MIN);
       date.setHours(0, 0, 0, 0);
     },
   },
+
   /**
    * Valid values: 0-52 (depending on year)
    */
@@ -135,6 +141,7 @@ export const Periods: Record<Period, PeriodDefinition> =
       startOfWeek(date, options);
     },
   },
+
   /**
    * Valid values: 0-52 (depending on year)
    */
@@ -148,6 +155,7 @@ export const Periods: Record<Period, PeriodDefinition> =
       startOfWeek(date, options);
     },
   },
+
   /**
    * Valid values: 0-52 (depending on year)
    */
@@ -161,6 +169,7 @@ export const Periods: Record<Period, PeriodDefinition> =
       startOfWeek(date, options);
     },
   },
+
   /**
    * Valid values: 0-5 (depending om month)
    */
@@ -174,6 +183,7 @@ export const Periods: Record<Period, PeriodDefinition> =
       startOfWeek(date, options);
     },
   },
+
   /**
    * Valid values: 0-4 (depending om month)
    */
@@ -187,6 +197,7 @@ export const Periods: Record<Period, PeriodDefinition> =
       startOfWeek(date, options);
     },
   },
+
   /**
    * Valid values: 0-4 (depending om month)
    */
@@ -200,6 +211,7 @@ export const Periods: Record<Period, PeriodDefinition> =
       startOfWeek(date, options);
     },
   },
+
   /**
    * Valid values: 0-366 (depending on year)
    */
@@ -213,6 +225,7 @@ export const Periods: Record<Period, PeriodDefinition> =
       date.setHours(0, 0, 0, 0);
     },
   },
+
   /**
    * Valid values: 0-6
    */
@@ -225,6 +238,7 @@ export const Periods: Record<Period, PeriodDefinition> =
       date.setHours(0, 0, 0, 0);
     },
   },
+  
   /**
    * Valid values: 1-31 (depending on month)
    */
@@ -238,6 +252,7 @@ export const Periods: Record<Period, PeriodDefinition> =
       date.setHours(0, 0, 0, 0);
     },
   },
+
   /**
    * Valid values: 1-31 (depending on month, 1 = last day)
    */
@@ -251,6 +266,21 @@ export const Periods: Record<Period, PeriodDefinition> =
       date.setHours(0, 0, 0, 0);
     },
   },
+
+  /**
+   * Valid values: any
+   */
+  dayOfEpoch:
+  {
+    priority: 86400000,
+    get: (date) => Math.floor(date.getTime() / Constants.MILLIS_IN_DAY),
+    next: (date, value, options) => {
+      const current = Periods.dayOfEpoch.get(date, options);
+      date.setDate(getNext(current, value, 0));
+      date.setHours(0, 0, 0, 0);
+    },
+  },
+
   /**
    * Value values: 0-23
    */
@@ -262,6 +292,7 @@ export const Periods: Record<Period, PeriodDefinition> =
       date.setHours(getNext(date.getHours(), value, Constants.HOURS_IN_DAY), 0, 0, 0);
     },
   },
+
   /**
    * Value values: 0-59
    */
@@ -273,6 +304,7 @@ export const Periods: Record<Period, PeriodDefinition> =
       date.setMinutes(getNext(date.getMinutes(), value, Constants.MINUTES_IN_HOUR), 0, 0);
     },
   },
+
   /**
    * Value values: 0-59
    */
@@ -284,6 +316,7 @@ export const Periods: Record<Period, PeriodDefinition> =
       date.setSeconds(getNext(date.getSeconds(), value, Constants.SECONDS_IN_MINUTE), 0);
     },
   },
+
   /**
    * Value values: 0-999
    */
@@ -295,5 +328,7 @@ export const Periods: Record<Period, PeriodDefinition> =
       date.setMilliseconds(getNext(date.getMilliseconds(), value, Constants.MILLIS_IN_SECOND));
     },
   },
+
+
 };
 
